@@ -51,41 +51,43 @@ class _TouchHandlerState extends State<TouchHandler>
   double _initialHeight;
 
   void _onTapDown(TapDownDetails details) {
+    print("Tap Down");
     _ballRadiusController.reset();
     _ballPositionController.reset();
     _ballRadiusController.forward();
+    final RenderBox referenceBox = context.findRenderObject();
     setState(() {
-      _ballPosition = details.globalPosition;
+      _ballPosition = referenceBox.globalToLocal(details.globalPosition);
     });
   }
 
   void _onTapUp(TapUpDetails details) {
+    print("Tap Up");
+    final RenderBox referenceBox = context.findRenderObject();
     setState(() {
-      _ballPosition = details.globalPosition;
+      _ballPosition = referenceBox.globalToLocal(details.globalPosition);
     });
     _ballRadiusController.stop();
     _startFall();
   }
 
   void _onPanStart(DragStartDetails details) {
+    print("Pan Start");
     _ballPositionController.reset();
     if (!_ballRadiusController.isAnimating) {
       _ballRadiusController.reset();
       _ballRadiusController.forward();
     }
+    final RenderBox referenceBox = context.findRenderObject();
     setState(() {
-      _ballPosition = details.globalPosition;
+      _ballPosition = referenceBox.globalToLocal(details.globalPosition);
     });
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    print(details.globalPosition.dx.toString() +
-        " , " +
-        details.globalPosition.dy.toString() +
-        " end: " +
-        _screenHeight.toString());
+    final RenderBox referenceBox = context.findRenderObject();
     setState(() {
-      _ballPosition = details.globalPosition;
+      _ballPosition = referenceBox.globalToLocal(details.globalPosition);
     });
   }
 
@@ -142,7 +144,6 @@ class _TouchHandlerState extends State<TouchHandler>
               radiusController: _ballRadiusController,
               position: _ballPosition ?? Offset.zero,
               color: Colors.redAccent,
-              screenHeight: _screenHeight,
           ),
         ),
       ),
@@ -154,13 +155,11 @@ class BallPainter extends CustomPainter {
   final AnimationController radiusController;
   final Offset position;
   final Color color;
-  final double screenHeight;
 
   BallPainter({
     @required this.radiusController,
     @required this.position,
     this.color = Colors.redAccent,
-    @required this.screenHeight
   }) : super(repaint: radiusController);
 
   @override
@@ -169,7 +168,7 @@ class BallPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(Offset(position.dx, position.dy - (screenHeight - size.height)), radiusController.value, paint);
+    canvas.drawCircle(position, radiusController.value, paint);
   }
 
   @override
